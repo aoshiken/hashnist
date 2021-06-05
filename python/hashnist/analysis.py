@@ -16,7 +16,8 @@ else:
 ################################################################################
 
 
-RESPONSE_ITEM_LEN = 65
+RESPONSE_ITEM_LEN_SHA = 65
+RESPONSE_ITEM_LEN_MD5 = 33
 
 STATUS_SUCCESS       = "SUCCESS"
 STATUS_ERR_INVALID   = "INVALID_SERVER_RESP"
@@ -48,8 +49,8 @@ class AnalysisResult( object ):
 
 ################################################################################
 
-def extract_items( buff_response ):
-    '''64 bytes of SHA256 string plus 1 byte of result string
+def extract_items( buff_response, response_item_len ):
+    '''64 bytes of SHA256 (or 32 bytes of MD5) string plus 1 byte of result string
        (0 FOUND, 1 NOT_FOUND, 2 ERROR):
        00001D55121052597C78A59CADCE6F218C88A4F270A577132FBC3C834F4C6C760
        00001D55121052597C78A59CADCE6F218C88A4F270A577132FBC3C834F4C6C761
@@ -57,25 +58,25 @@ def extract_items( buff_response ):
     '''
     result_obj = AnalysisResult()
 
-    for i in range( 0, len( buff_response ), RESPONSE_ITEM_LEN ):
+    for i in range( 0, len( buff_response ), response_item_len ):
 
-        item = buff_response[i:i + RESPONSE_ITEM_LEN]
+        item = buff_response[i:i + response_item_len]
 
         # SHA_SEARCH_FOUND     = 0
         # SHA_SEARCH_NOT_FOUND = 1
         # SHA_SEARCH_ERROR     = 2
 
-        if item[64] == 0:
+        if item[response_item_len - 1] == 0:
 
-            result_obj.found.append( item[:64].decode("utf-8") )
+            result_obj.found.append( item[:response_item_len-1].decode("utf-8") )
 
-        elif item[64] == 1:
+        elif item[response_item_len-1] == 1:
 
-            result_obj.not_found.append( item[:64].decode("utf-8") )
+            result_obj.not_found.append( item[:response_item_len-1].decode("utf-8") )
 
-        elif item[64] == 2:
+        elif item[response_item_len-1] == 2:
 
-            result_obj.error.append( item[:64].decode("utf-8") )
+            result_obj.error.append( item[:response_item_len-1].decode("utf-8") )
 
         else:
             log.warning( "Invalid entry from server! [%s]" % 
@@ -89,13 +90,20 @@ def extract_items( buff_response ):
 
 ################################################################################
 
-def read_group_result( server_sock, read_size, sock_timeout ):
+def read_group_result( server_sock, read_size, sock_timeout, use_md5=False ):
 
     ret_sock, buff_read = utilsock.read( sock    = server_sock,
                                          size    = read_size,
                                          timeout = sock_timeout )
 
-    result_obj = extract_items( buff_read )
+
+    if use_md5:
+
+        result_obj = extract_items( buff_read, response_item_len=RESPONSE_ITEM_LEN_MD5 )
+
+    else:
+
+        result_obj = extract_items( buff_read, response_item_len=RESPONSE_ITEM_LEN_SHA )
 
     if ret_sock != utilsock.SOCK_OK:
 
@@ -105,7 +113,7 @@ def read_group_result( server_sock, read_size, sock_timeout ):
 
 ################################################################################
 
-def analyze( hash_list, server_name, server_port, group_size=1000, sock_timeout=40 ):
+def analyze( hash_list, server_name, server_port, group_size=1000, sock_timeout=40, use_md5=False ):
 
     result_obj = AnalysisResult()
 
@@ -132,7 +140,8 @@ def analyze( hash_list, server_name, server_port, group_size=1000, sock_timeout=
 
                     group_obj = read_group_result( server_sock,
                                                    read_size,
-                                                   sock_timeout )
+                                                   sock_timeout,
+                                                   use_md5 = use_md5)
 
                     result_obj.add( group_obj )
 
@@ -151,6 +160,30 @@ def analyze( hash_list, server_name, server_port, group_size=1000, sock_timeout=
             result_obj.status = STATUS_NOT_CONNECTED
 
     return result_obj
+
+################################################################################
+
+def analyze_md5( hash_list, server_name, server_port, group_size=1000,
+                 sock_timeout=40 ):
+
+    return analyze( hash_list    = hash_list,
+                    server_name  = server_name,
+                    server_port  = server_port,
+                    group_size   = 1000,
+                    sock_timeout = sock_timeout,
+                    use_md5      = True )
+
+################################################################################
+
+def analyze_sha256( hash_list, server_name, server_port, group_size=1000,
+                    sock_timeout=40 ):
+
+    return analyze( hash_list    = hash_list,
+                    server_name  = server_name,
+                    server_port  = server_port,
+                    group_size   = 1000,
+                    sock_timeout = sock_timeout,
+                    use_md5      = False )
 
 
 ################################################################################
@@ -220,11 +253,11 @@ if __name__ == "__main__":
     start = time.time()
     print("Starting analysis...\n")
 
-    ret_obj = analyze( hash_list   = hash_list,
-                       server_name = '127.0.0.1',
-                       server_port = 25800,
-                       group_size  = 1000,
-                       sock_timeout= 30 )
+    ret_obj = analyze_sha256( hash_list   = hash_list,
+                              server_name = '127.0.0.1',
+                              server_port = 25800,
+                              group_size  = 1000,
+                              sock_timeout= 30 )
 
     end = time.time()
 
