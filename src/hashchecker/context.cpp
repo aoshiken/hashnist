@@ -27,7 +27,7 @@ CONTEXT *context_init( void )
         ret_ctx->port           = CTX_DFL_TCP_PORT ;
         ret_ctx->ip             = 0x100007F ;
         ret_ctx->socket_timeout = CTX_DFL_TIMEOUT ;
-        ret_ctx->item_size      = 64 ;
+        ret_ctx->item_size      = 64 ; // SHA256 hashes by default
     }
 
     return ret_ctx; 

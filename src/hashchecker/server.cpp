@@ -11,6 +11,12 @@
 
 #include "context.h"
 
+enum hash_search_ret
+{
+    HASH_SEARCH_FOUND     = 0,
+    HASH_SEARCH_NOT_FOUND = 1,
+    HASH_SEARCH_ERROR     = 2
+};
 
 static struct event_base *g_server_base = NULL ;
 
@@ -53,6 +59,50 @@ static void net_event_callback( struct bufferevent *buff_ev,
 
 ///////////////////////////////////////////////////////////////////////////////
 
+static hash_search_ret hash_search( CONTEXT *ctx, char *buff_read )
+{
+    hash_search_ret ret = HASH_SEARCH_ERROR ;
+
+    if ( ctx->use_md5 )
+    {
+        md5_search_ret md5_ret = md5_search( ctx->md5_ctx, buff_read );
+
+        switch( md5_ret )
+        {
+            case MD5_SEARCH_FOUND:
+                ret = HASH_SEARCH_FOUND;
+                break;
+            case MD5_SEARCH_NOT_FOUND:
+                ret = HASH_SEARCH_NOT_FOUND;
+                break;
+            case MD5_SEARCH_ERROR:
+                ret = HASH_SEARCH_ERROR;
+                break;
+        }
+    }
+    else
+    {
+        sha_search_ret sha_ret = sha256_search( ctx->sha_ctx, buff_read );
+
+        switch( sha_ret )
+        {
+            case SHA_SEARCH_FOUND:
+                ret = HASH_SEARCH_FOUND;
+                break;
+            case SHA_SEARCH_NOT_FOUND:
+                ret = HASH_SEARCH_NOT_FOUND;
+                break;
+            case SHA_SEARCH_ERROR:
+                ret = HASH_SEARCH_ERROR;
+                break;
+        }
+    }
+
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 static void net_read_callback( struct bufferevent *buff_ev, void *arg )
 {
     CONTEXT *ctx           = (CONTEXT *)arg ;
@@ -73,16 +123,16 @@ static void net_read_callback( struct bufferevent *buff_ev, void *arg )
                 {
                     buff_read[ ctx->item_size ] = 0 ;
 
-                    sha_search_ret ret = sha256_search( ctx->sha_ctx, buff_read );
+                    hash_search_ret ret = hash_search( ctx, buff_read );
 
-                    // 0 == SHA_SEARCH_FOUND
-                    // 1 == SHA_SEARCH_NOT_FOUND
-                    // 2 == SHA_SEARCH_ERROR
+                    // 0 == HASH_SEARCH_FOUND
+                    // 1 == HASH_SEARCH_NOT_FOUND
+                    // 2 == HASH_SEARCH_ERROR
 
-                    if ( ret == SHA_SEARCH_NOT_FOUND )
+                    if ( ret == HASH_SEARCH_NOT_FOUND )
                         buff_read[ ctx->item_size ] = 1;
                     else
-                    if ( ret == SHA_SEARCH_ERROR )
+                    if ( ret == HASH_SEARCH_ERROR )
                         buff_read[ ctx->item_size ] = 2;
 
                     bufferevent_write( buff_ev, buff_read, ctx->item_size + 1 );
@@ -219,11 +269,18 @@ bool server_start( CONTEXT *ctx )
 
     if (server_base)
     {
-        printf("Loading SHA256 context...\n");
+        if ( ctx->use_md5 )
+        {
+            printf("Loading MD5 context...\n");
+            ctx->md5_ctx = md5_init_ctx( ctx->hashes_file );
+        }
+        else
+        {
+            printf("Loading SHA256 context...\n");
+            ctx->sha_ctx = sha256_init_ctx( ctx->hashes_file );
+        }
 
-        ctx->sha_ctx = sha256_init_ctx( ctx->hashes_file );
-
-        if ( ctx->sha_ctx )
+        if ( ctx->sha_ctx || ctx->md5_ctx )
         {
             struct evconnlistener *listener = server_make_listener( ctx,
                                                                     server_base );
@@ -236,7 +293,10 @@ bool server_start( CONTEXT *ctx )
             else
                 fprintf( stderr, "evconnlistener_new_bind() failed\n");
 
-            sha256_fini_ctx( ctx->sha_ctx );
+            if ( ctx->use_md5 )
+                md5_fini_ctx( ctx->md5_ctx );
+            else
+                sha256_fini_ctx( ctx->sha_ctx );
         }
     }
     else
