@@ -2,6 +2,7 @@ HOSTNAME       = 'localhost'
 PORT           = 25800
 GROUP_SIZE     = 1000
 SOCKET_TIMEOUT = 40
+SERVER_USE_MD5 = True
 
 MINIMAL_ASYNC_ITEMS = 5000
 
