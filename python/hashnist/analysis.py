@@ -237,23 +237,34 @@ if __name__ == "__main__":
     hash_list += hash_list
     hash_list += hash_list
     hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
-    #hash_list += hash_list
+
+    hash_list = [ '0000015367EEDD3FAF7EE378DD1992CC',
+                  '000001D847E693AB82A15E6925D281ED',
+                  '000002012397DB2E45A4B605C6422948',
+                  '000002B1180F80CBB246BAE338903BDD',
+                  '8DC95A4139F01F9401F18069DD675D93',
+                  '8DC95B58251B21FE63908C41844B7179',
+                  '8DC95B8205AAB55B98A66CDAEE79EA7B',
+                  '8DC95C39D41D48A3929345A47FD6DE21',
+                  '8DC95C39D41DG8A3929345A47FD6DE21',
+                  '8DC95C4A59DBA54C8109747A85F4D387',
+                  '8DC95C916D94B2C1A60D627B01BE6816',
+                  '8DC95D00759FE7FD83C63673D501EBC8',
+                  '8DC95EFE81F47D08039FDDDC2F7A2BF5',
+                  '8DC95F1B7270384EDB0084D894B9B0EE',
+                  '8DC95F3EE3F7D57FD76FF61E02A33DD5',
+                  'FFFFFEFBD0575D006666666666666666',
+                  'FFFFFEFBD0575D00A526A4F793EC32E2',
+                  'FFFFFF79923A38E08EB5E3C26AC5F6E4',
+                  'FFFFFF7D4B83424314F9378F17B895C9',
+                  'FFFFFFBAC715AFD1EC723F4A982CE620'
+                ]
 
     import time
     start = time.time()
     print("Starting analysis...\n")
 
-    ret_obj = analyze_sha256( hash_list   = hash_list,
+    ret_obj = analyze_md5( hash_list   = hash_list,
                               server_name = '127.0.0.1',
                               server_port = 25800,
                               group_size  = 1000,
