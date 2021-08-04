@@ -32,7 +32,7 @@ static inline bool parse_buffer( CONTEXT *ctx )
                 if ( write( ctx->file_dst, (const void *)&ctx->hash_obj,
                             sizeof( SHA_256 ) ) != sizeof( SHA_256 ) )
                 {
-                    fprintf( stderr, "ERROR!! Iinvalid write!!\n");
+                    fprintf( stderr, "ERROR!! Invalid write!!\n");
 
                     return false;
                 }

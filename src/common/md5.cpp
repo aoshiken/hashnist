@@ -34,15 +34,8 @@ bool md5_from_hex_allocated( char *hex_str, MD5 *ret_md5 )
         *hex_end   = 0;
 
         if ( util_to_uint64( hex_begin, &ret_md5->num64.first ) )
-        {
-            *hex_end   = aux ;
-            hex_begin += 16 ;
-            hex_end   += 16 ;
-            aux        = *hex_end ;
-            *hex_end   = 0;
 
             return true ;
-        }
     }
 
     return false ;
