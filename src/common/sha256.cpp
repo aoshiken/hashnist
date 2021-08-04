@@ -233,6 +233,9 @@ bool sha256_load_file( SHA_CONTEXT *sha_ctx, const char *file_path_src )
         if ( ! fstat64( file_hnd, &statbuf) )
         {
             ret = sha256_load_buffer( sha_ctx, file_hnd, &statbuf.st_size );
+
+            if ( ret )
+                printf("SHA256 hashes loaded in memory: %ld\n", statbuf.st_size/32 );
         }
 
         close( file_hnd );

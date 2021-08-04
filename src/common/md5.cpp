@@ -210,6 +210,9 @@ bool md5_load_file( MD5_CONTEXT *md5_ctx, const char *file_path_src )
         if ( ! fstat64( file_hnd, &statbuf) )
         {
             ret = md5_load_buffer( md5_ctx, file_hnd, &statbuf.st_size );
+
+            if ( ret )
+                printf("MD5 hashes loaded in memory: %ld\n", statbuf.st_size/16 );
         }
 
         close( file_hnd );
