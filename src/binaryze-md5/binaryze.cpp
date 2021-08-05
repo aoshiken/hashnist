@@ -8,7 +8,7 @@
 #include <fcntl.h>
 
 #include "util.h"
-#include "sha256.h"
+#include "md5.h"
 #include "context.h"
 #include "parser.h"
 
@@ -19,7 +19,7 @@ static inline bool parse_buffer( CONTEXT *ctx )
 {
     char *hash_begin = ctx->read_buffer ;
     char *buff_end   = ctx->read_buffer + ctx->bytes_read ;
-    char *hash_end   = ctx->read_buffer + 64 ;
+    char *hash_end   = ctx->read_buffer + 32 ;
     char aux         = *hash_end ;
     *hash_end        = 0;
 
@@ -27,10 +27,10 @@ static inline bool parse_buffer( CONTEXT *ctx )
     {
         if ( ! regexec( &ctx->preg, (const char *)hash_begin, 0, NULL, 0 ) )
         {
-            if ( sha256_from_hex_allocated( hash_begin, &ctx->hash_obj ) )
+            if ( md5_from_hex_allocated( hash_begin, &ctx->hash_obj ) )
             {
                 if ( write( ctx->file_dst, (const void *)&ctx->hash_obj,
-                            sizeof( SHA_256 ) ) != sizeof( SHA_256 ) )
+                            sizeof( MD5 ) ) != sizeof( MD5 ) )
                 {
                     fprintf( stderr, "ERROR!! Invalid write!!\n");
 
@@ -43,7 +43,7 @@ static inline bool parse_buffer( CONTEXT *ctx )
 
         *hash_end  = aux ;
         hash_begin = hash_end ;
-        hash_end  += 64;
+        hash_end  += 32;
 
         if ( hash_end <= buff_end )
         {
@@ -113,7 +113,7 @@ CONTEXT *context_init( void )
         ret_ctx->file_src = -1 ;
         ret_ctx->file_dst = -1 ;
 
-        if ( ! regcomp( &ret_ctx->preg, "^[0-9A-Fa-f]\\{64\\}$", 0 ) )
+        if ( ! regcomp( &ret_ctx->preg, "^[0-9A-Fa-f]\\{32\\}$", 0 ) )
 
             return ret_ctx;
 

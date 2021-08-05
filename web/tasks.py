@@ -13,7 +13,8 @@ def analyze( hash_list ):
                                    server_name  = settings.HOSTNAME,
                                    server_port  = settings.PORT,
                                    group_size   = settings.GROUP_SIZE,
-                                   sock_timeout = settings.SOCKET_TIMEOUT )
+                                   sock_timeout = settings.SOCKET_TIMEOUT,
+                                   use_md5      = settings.SERVER_USE_MD5 )
 
     ret_dict = { 'status' : 'FINISHED', 'results' : result_obj.to_dict() }
 

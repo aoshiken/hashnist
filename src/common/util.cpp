@@ -5,6 +5,9 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <errno.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,4 +58,17 @@ void util_print_buffer( const char *buffer, int size, int column )
         i++;
     }
     printf("\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+time_t util_get_modif_time( const char *full_path )
+{
+    struct stat attr;
+
+    if ( ! stat( full_path, &attr ) )
+
+        return attr.st_mtime ;
+
+    return -1;
 }

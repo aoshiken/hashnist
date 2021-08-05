@@ -46,4 +46,4 @@ if test $have_uint128 = no; then
   AC_MSG_ERROR(...i'm sure you'll take the right decision.)
 fi
 
-AC_OUTPUT(Makefile src/hashchecker/Makefile src/binaryze/Makefile)
+AC_OUTPUT(Makefile src/hashchecker/Makefile src/binaryze/Makefile src/binaryze-md5/Makefile)
