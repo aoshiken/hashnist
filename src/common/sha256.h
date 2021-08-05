@@ -45,5 +45,7 @@ bool sha256_less_or_equal( SHA_256 *sha256_left, SHA_256 *sha256_right );
 bool sha256_great( SHA_256 *sha256_left, SHA_256 *sha256_right );
 bool sha256_great_or_equal( SHA_256 *sha256_left, SHA_256 *sha256_right );
 bool sha256_not_equal( SHA_256 *sha256_left, SHA_256 *sha256_right );
+bool sha256_load_file( SHA_CONTEXT *sha_ctx, const char *file_path_src );
+void sha256_free_buffer( SHA_CONTEXT *ctx );
 
 #endif

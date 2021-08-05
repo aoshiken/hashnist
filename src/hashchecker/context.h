@@ -11,8 +11,8 @@
 typedef struct _CONTEXT {
     SHA_CONTEXT *sha_ctx ;
     MD5_CONTEXT *md5_ctx ;
-    const char *hashes_file; // File with all of the hashes in binary format
-                             // format and ordered
+    const char *hashes_file; // File with all of the hashes ordered in binary format
+    time_t last_modif_time;  // Last modification time of tghe hashes file
     unsigned short port ;    // TCP Listen at port
     unsigned int ip ;        // TCP Listen at IP address
     size_t item_size ;       // Size of item read in the socket (SHA_256 string size 64 bytes)

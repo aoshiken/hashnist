@@ -275,12 +275,25 @@ SHA_CONTEXT *sha256_init_ctx( const char *file_path_src )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void sha256_fini_ctx( SHA_CONTEXT *ctx )
+void sha256_free_buffer( SHA_CONTEXT *ctx )
 {
     if ( ctx )
     {
         if ( ctx->buffer )
+        {
             free( ctx->buffer );
+            ctx->buffer = NULL ;
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void sha256_fini_ctx( SHA_CONTEXT *ctx )
+{
+    if ( ctx )
+    {
+        sha256_free_buffer( ctx );
 
         if ( ctx->preg.allocated )
             regfree( &ctx->preg );

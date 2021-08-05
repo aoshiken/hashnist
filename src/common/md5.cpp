@@ -252,12 +252,25 @@ MD5_CONTEXT *md5_init_ctx( const char *file_path_src )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void md5_fini_ctx( MD5_CONTEXT *ctx )
+void md5_free_buffer( MD5_CONTEXT *ctx )
 {
     if ( ctx )
     {
         if ( ctx->buffer )
+        {
             free( ctx->buffer );
+            ctx->buffer = NULL ;
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void md5_fini_ctx( MD5_CONTEXT *ctx )
+{
+    if ( ctx )
+    {
+        md5_free_buffer( ctx );
 
         if ( ctx->preg.allocated )
             regfree( &ctx->preg );

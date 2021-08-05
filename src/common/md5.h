@@ -40,5 +40,7 @@ bool md5_less_or_equal( MD5 *md5_left, MD5 *md5_right );
 bool md5_great( MD5 *md5_left, MD5 *md5_right );
 bool md5_great_or_equal( MD5 *md5_left, MD5 *md5_right );
 bool md5_not_equal( MD5 *md5_left, MD5 *md5_right );
+bool md5_load_file( MD5_CONTEXT *md5_ctx, const char *file_path_src );
+void md5_free_buffer( MD5_CONTEXT *ctx );
 
 #endif
