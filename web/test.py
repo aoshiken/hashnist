@@ -1,3 +1,4 @@
+import sys
 import requests
 
 sha256_list = [ '00000A1ED7F56E4DFA4582BFB55739113A135BC4F6EB2DA750654B6FA66B3CBA',
@@ -30,8 +31,19 @@ md5_list = [ '0000015367EEDD3FAF7EE378DD1992CC',
              'FFFFFFBAC715AFD1EC723F4A982CE620'
             ]
 
-r = requests.post('http://localhost/hashnist/analyze', json={ "hashes": md5_list })
+if sys.argv[1] == 'md5':
+
+    r = requests.post('http://localhost/hashnist/analyze', json={ "hashes": md5_list })
+    print( r.json())
+
+elif sys.argv[1] == 'sha256':
+
+    r = requests.post('http://localhost/hashnist/analyze', json={ "hashes": sha256_list })
+    print( r.json())
+
+else:
+    print("Invalid argument!!")
+
 #r = requests.post('http://localhost:5000/analyze', json={ "hashes": lista })
 
-print( r.json())
 
