@@ -40,7 +40,7 @@ void sha256_fini_ctx( SHA_CONTEXT *sha_ctx );
 sha_search_ret sha256_search( SHA_CONTEXT *sha_ctx, char *hex_str ); 
 char *sha256_to_hex( SHA_256 *sha );
 SHA_256 *sha256_from_hex( char *hex_str );
-bool sha256_from_hex_allocated( char *hex_str, SHA_256 *ret_sha );
+bool sha256_from_hex_allocated( char *hex_str, void *ret_sha );
 bool sha256_less_or_equal( SHA_256 *sha256_left, SHA_256 *sha256_right );
 bool sha256_great( SHA_256 *sha256_left, SHA_256 *sha256_right );
 bool sha256_great_or_equal( SHA_256 *sha256_left, SHA_256 *sha256_right );

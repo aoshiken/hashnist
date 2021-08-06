@@ -6,15 +6,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <getopt.h>
+#include <regex.h>
 
+#include "md5.h"
 #include "context.h"
-
 
 static struct option long_options[] =
 {
     { "help",        no_argument,       NULL, 'h' },
     { "input-file",  required_argument, NULL, 'i' },
     { "output-file", required_argument, NULL, 'o' },
+    { "use-md5",     no_argument,       NULL, '5' },
     { "version",     no_argument,       NULL, 'V' },
     { NULL,          0,                 NULL, 0   }
 };
@@ -51,16 +53,17 @@ void show_help( char *progname )
     else
         cur++;
 
-    fprintf(stderr, "\nGenerate a file of SHA256 hashes in binary format according to a source file\n");
-    fprintf(stderr, "with JUST ONE LINE of ordered SHA256 hashes in text format (all of the hashes\n");
+    fprintf(stderr, "\nGenerate a file of MD5/SHA256 hashes in binary format according to a source file\n");
+    fprintf(stderr, "with JUST ONE LINE of ordered hashes in text format (all of the hashes\n");
     fprintf(stderr, "are stored in JUST ONE LINE with no blanks between).\n");
-    fprintf(stderr, "The SHA256 hashes of the source text file comes from the NIST National Software\n");
+    fprintf(stderr, "The hashes of the source text file comes from the NIST National Software\n");
     fprintf(stderr, "Reference Library catalog.\n\n");
-    fprintf(stderr, "Usage:\n    %s [-h] [-V] {-i file_path} {-o file_path}\n", cur);
+    fprintf(stderr, "Usage:\n    %s [-h] [-V] [-5] {-i file_path} {-o file_path}\n", cur);
     fprintf(stderr, "\nOptions:\n");
+    fprintf(stderr, "    -5, --use-md5               Use MD5 hashes instead of SHA256\n");
     fprintf(stderr, "    -h, --help                  This help screen\n");
-    fprintf(stderr, "    -i --input-file  file_path  Input file with ordered SHA256 hashes in text format\n");
-    fprintf(stderr, "    -o --output-file file_path  Output file with SHA256 hashes in binary format\n");
+    fprintf(stderr, "    -i --input-file  file_path  Input file with ordered hashes in text format\n");
+    fprintf(stderr, "    -o --output-file file_path  Output file with hashes in binary format\n");
     fprintf(stderr, "    -V, --version               Show file version\n\n");
   
     exit( EXIT_FAILURE );
@@ -75,10 +78,22 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
     if ( argc == 1)
         show_help(argv[0]);
 
-    while ( (ch = getopt_long( argc, argv, "hi:o:V", long_options, NULL)) != -1)
+    while ( (ch = getopt_long( argc, argv, "5hi:o:V", long_options, NULL)) != -1)
     {
         switch( ch )
         {
+            case '5':
+                regfree( &ctx->preg );
+                if ( regcomp( &ctx->preg, "^[0-9A-Fa-f]\\{32\\}$", 0 ) )
+                {
+                    fprintf(stderr,"Uanble to compile regex!!\n");
+                    exit( EXIT_FAILURE );
+                }
+                ctx->use_md5       = true;
+                ctx->hash_size     = 16 ;
+                ctx->hash_str_size = 32 ;
+                ctx->hash_from_hex = md5_from_hex_allocated ;
+                break;
             case 'h':
                 show_help( argv[0] );
                 break;

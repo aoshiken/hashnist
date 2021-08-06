@@ -17,8 +17,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool sha256_from_hex_allocated( char *hex_str, SHA_256 *ret_sha )
+bool sha256_from_hex_allocated( char *hex_str, void *ret_sha_arg )
 {
+    SHA_256 *ret_sha = (SHA_256 *)ret_sha_arg ;
     char *hex_begin = hex_str ;
     char *hex_end   = hex_begin + 16 ;
     char aux        = *hex_end ;
@@ -62,7 +63,7 @@ SHA_256 *sha256_from_hex( char *hex_str )
 {
     SHA_256 *ret_sha = (SHA_256 *)malloc( sizeof( SHA_256 ) );
 
-    if ( ! sha256_from_hex_allocated( hex_str, ret_sha ) )
+    if ( ! sha256_from_hex_allocated( hex_str, (void *)ret_sha ) )
     {
         free( ret_sha );
 
