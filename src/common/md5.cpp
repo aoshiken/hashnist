@@ -17,8 +17,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool md5_from_hex_allocated( char *hex_str, MD5 *ret_md5 )
+bool md5_from_hex_allocated( char *hex_str, void *ret_md5_arg )
 {
+    MD5 *ret_md5 = (MD5 *)ret_md5_arg;
     char *hex_begin = hex_str ;
     char *hex_end   = hex_begin + 16 ;
     char aux        = *hex_end ;
@@ -47,7 +48,7 @@ MD5 *md5_from_hex( char *hex_str )
 {
     MD5 *ret_md5 = (MD5 *)malloc( sizeof( MD5 ) );
 
-    if ( ! md5_from_hex_allocated( hex_str, ret_md5 ) )
+    if ( ! md5_from_hex_allocated( hex_str, (void *)ret_md5 ) )
     {
         free( ret_md5 );
 

@@ -35,7 +35,7 @@ void md5_fini_ctx( MD5_CONTEXT *md5_ctx );
 md5_search_ret md5_search( MD5_CONTEXT *md5_ctx, char *hex_str ); 
 char *md5_to_hex( MD5 *md5 );
 MD5 *md5_from_hex( char *hex_str );
-bool md5_from_hex_allocated( char *hex_str, MD5 *ret_md5 );
+bool md5_from_hex_allocated( char *hex_str, void *ret_md5 );
 bool md5_less_or_equal( MD5 *md5_left, MD5 *md5_right );
 bool md5_great( MD5 *md5_left, MD5 *md5_right );
 bool md5_great_or_equal( MD5 *md5_left, MD5 *md5_right );

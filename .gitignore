@@ -1,11 +1,9 @@
 
 binaryze
 hashchecker
-binaryzemd5
 
 src/binaryze/binaryze
 src/hashchecker/hashchecker
-src/binaryzemd5/binaryzemd5
 
 python/__pycache__
 

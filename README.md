@@ -9,7 +9,7 @@ The National Software Reference Library (NSRL) is designed to collect software f
 
 The server is a TCP server named `hashchecker` and written in C/C++, a Python client is located inside the folder `python` and a web backend with installation instructions is located under the `web` folder.
 
-For improving speed and memory footprint `hashchecker` requires an input file with all the SHA256/MD5 hashes in binary format, the companion tools named `binaryze` and `binaryzemd5` can generate that file, see the INSTALLATION section below.
+For improving speed and memory footprint `hashchecker` requires an input file with all the SHA256/MD5 hashes in binary format, the companion tool named `binaryze` can generate that file, see the INSTALLATION section below.
 
 ## Building
 
@@ -73,9 +73,9 @@ $ cut -f 4 -d '"' NSRLFile.txt | LC_ALL=C sort -u | tr --delete '\n' > md5-order
 ```
 
 Now you can convert the file from the previous step into a binary file using
- the `binaryzemd5` utility:
+ the `binaryze` utility:
 ```
-$ binaryzemd5 -i md5-ordered.txt -o md5-ordered.bin
+$ binaryze --use-md5 -i md5-ordered.txt -o md5-ordered.bin
 ```
 
 ...and now you can start the `hashchecker` server with the file generated:

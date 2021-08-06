@@ -19,7 +19,7 @@ static inline bool parse_buffer( CONTEXT *ctx )
 {
     char *hash_begin = ctx->read_buffer ;
     char *buff_end   = ctx->read_buffer + ctx->bytes_read ;
-    char *hash_end   = ctx->read_buffer + 64 ;
+    char *hash_end   = ctx->read_buffer + ctx->hash_str_size ;
     char aux         = *hash_end ;
     *hash_end        = 0;
 
@@ -27,10 +27,10 @@ static inline bool parse_buffer( CONTEXT *ctx )
     {
         if ( ! regexec( &ctx->preg, (const char *)hash_begin, 0, NULL, 0 ) )
         {
-            if ( sha256_from_hex_allocated( hash_begin, &ctx->hash_obj ) )
+            if ( (*ctx->hash_from_hex)( hash_begin, (void *)&ctx->hash_bin ) )
             {
-                if ( write( ctx->file_dst, (const void *)&ctx->hash_obj,
-                            sizeof( SHA_256 ) ) != sizeof( SHA_256 ) )
+                if ( write( ctx->file_dst, (const void *)&ctx->hash_bin,
+                            ctx->hash_size ) != ctx->hash_size )
                 {
                     fprintf( stderr, "ERROR!! Invalid write!!\n");
 
@@ -43,7 +43,7 @@ static inline bool parse_buffer( CONTEXT *ctx )
 
         *hash_end  = aux ;
         hash_begin = hash_end ;
-        hash_end  += 64;
+        hash_end  += ctx->hash_str_size;
 
         if ( hash_end <= buff_end )
         {
@@ -87,7 +87,7 @@ bool open_files( CONTEXT *ctx )
         posix_fadvise( ctx->file_src, 0, 0, POSIX_FADV_SEQUENTIAL );
 
         ctx->file_dst = creat( ctx->hash_bin_path,
-                                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH );
+                               S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH );
 
         if ( ctx->file_dst != -1 )
         {
@@ -110,8 +110,11 @@ CONTEXT *context_init( void )
 
     if ( ret_ctx )
     {
-        ret_ctx->file_src = -1 ;
-        ret_ctx->file_dst = -1 ;
+        ret_ctx->file_src      = -1 ;
+        ret_ctx->file_dst      = -1 ;
+        ret_ctx->hash_size     = 32 ;
+        ret_ctx->hash_str_size = 64 ;
+        ret_ctx->hash_from_hex = sha256_from_hex_allocated ;
 
         if ( ! regcomp( &ret_ctx->preg, "^[0-9A-Fa-f]\\{64\\}$", 0 ) )
 
@@ -151,7 +154,6 @@ void context_fini( CONTEXT *ctx )
 int main( int argc, char **argv )
 {
     int ret_code = EXIT_FAILURE ;
-
     CONTEXT *ctx = context_init();
 
     if ( ctx )
