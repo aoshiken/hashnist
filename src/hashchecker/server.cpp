@@ -44,47 +44,64 @@ static void sigterm_handler( int signal,
 
 ///////////////////////////////////////////////////////////////////////////////
 
+static bool reload_hashes( CONTEXT *ctx )
+{
+    printf( "Reloading hashes file in memory...\n" );
+
+    if ( ctx->use_md5 )
+    {
+        md5_free_buffer( ctx->md5_ctx );
+
+        return md5_load_file( ctx->md5_ctx, ctx->hashes_file );
+    }
+
+    sha256_free_buffer( ctx->sha_ctx );
+
+    return sha256_load_file( ctx->sha_ctx, ctx->hashes_file );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+static bool needs_reload( CONTEXT *ctx )
+{
+    time_t modif_time = util_get_modif_time( ctx->hashes_file );
+
+    if ( modif_time != ctx->modif_time )
+    {
+        ctx->modif_time = modif_time ;
+
+        return true;
+    }
+
+    printf( "Hashes file [%s] seems to remains untouched...\n",
+             ctx->hashes_file );
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 static void sighup_handler( __attribute__((unused))int signal,
                             __attribute__((unused))short events,
                             void *arg )
 {
     SIGNAL_CONTEXT *signal_ctx = (SIGNAL_CONTEXT *)arg;
-    time_t last_modif_time = util_get_modif_time( signal_ctx->ctx->hashes_file );
 
     printf( "\nReceived signal SIGHUP...\n" );
 
-    if ( last_modif_time != signal_ctx->ctx->last_modif_time )
+    if ( needs_reload( signal_ctx->ctx ) )
     {
-        bool loaded_file = false ;
-
-        printf( "Reloading hashes file in memory...\n" );
-
-        signal_ctx->ctx->last_modif_time = last_modif_time ;
-
-        if ( signal_ctx->ctx->use_md5)
+        if ( reload_hashes( signal_ctx->ctx ) )
         {
-            md5_free_buffer( signal_ctx->ctx->md5_ctx );
-
-            loaded_file = md5_load_file( signal_ctx->ctx->md5_ctx,
-                                         signal_ctx->ctx->hashes_file );
+            printf("Hashes reloaded OK\n");
         }
         else
         {
-            sha256_free_buffer( signal_ctx->ctx->sha_ctx );
-
-            loaded_file = sha256_load_file( signal_ctx->ctx->sha_ctx,
-                                            signal_ctx->ctx->hashes_file );
-        }
-
-        if ( ! loaded_file )
-        {
-            fprintf( stderr,"ERROR Reloading file!! Exiting...\n");
+            fprintf( stderr,"ERROR Reloading hashes!! Exiting...\n");
 
             event_base_loopexit( signal_ctx->server_base, NULL );
         }
     }
-    else
-        fprintf(stderr, "Hashes file [%s] seems to remains untouched...\n", signal_ctx->ctx->hashes_file );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -171,7 +188,8 @@ static void net_read_callback( struct bufferevent *buff_ev, void *arg )
         {
             while ( buff_input_len >= ctx->item_size )
             {
-                size_t bytes_read = bufferevent_read( buff_ev, buff_read, ctx->item_size );
+                size_t bytes_read = bufferevent_read( buff_ev, buff_read,
+                                                      ctx->item_size );
 
                 if ( bytes_read == ctx->item_size )
                 {
@@ -240,7 +258,8 @@ static void listen_cb( struct evconnlistener *listener,
             bufferevent_set_timeouts( buff_ev, &tv, &tv );
         }
 
-        bufferevent_setcb( buff_ev, net_read_callback, NULL, net_event_callback, arg );
+        bufferevent_setcb( buff_ev, net_read_callback, NULL, net_event_callback,
+                           arg );
     }
     else
         fprintf( stderr, "bufferevent_socket_new() failed\n");
@@ -272,22 +291,23 @@ struct evconnlistener *server_make_listener( CONTEXT *ctx,
 
 bool setup_signals( SIGNAL_CONTEXT *signal_ctx )
 {
-    signal_ctx->ev_sigint = evsignal_new( signal_ctx->server_base, SIGINT,
-                                           sigterm_handler, signal_ctx );
-
+    signal_ctx->ev_sigint = evsignal_new( signal_ctx->server_base,
+                                          SIGINT,
+                                          sigterm_handler, signal_ctx );
     if ( signal_ctx->ev_sigint )
     {
         evsignal_add( signal_ctx->ev_sigint, NULL );
 
-        signal_ctx->ev_sigterm = evsignal_new( signal_ctx->server_base, SIGTERM,
+        signal_ctx->ev_sigterm = evsignal_new( signal_ctx->server_base,
+                                               SIGTERM,
                                                sigterm_handler, signal_ctx );
-
         if ( signal_ctx->ev_sigterm )
         {
             evsignal_add( signal_ctx->ev_sigterm, NULL );
 
-            signal_ctx->ev_sighup = evsignal_new( signal_ctx->server_base, SIGHUP,
-                                                   sighup_handler, signal_ctx );
+            signal_ctx->ev_sighup = evsignal_new( signal_ctx->server_base,
+                                                  SIGHUP,
+                                                  sighup_handler, signal_ctx );
             if ( signal_ctx->ev_sighup )
             {
                 evsignal_add( signal_ctx->ev_sighup, NULL );
@@ -367,7 +387,7 @@ bool server_start( CONTEXT *ctx )
 
         if ( ctx->sha_ctx || ctx->md5_ctx )
         {
-            ctx->last_modif_time = util_get_modif_time( ctx->hashes_file );
+            ctx->modif_time = util_get_modif_time( ctx->hashes_file );
 
             struct evconnlistener *listener = server_make_listener( ctx,
                                                                     server_base );
