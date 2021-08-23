@@ -25,6 +25,11 @@ STATUS_ERR_INVALID   = "INVALID_SERVER_RESP"
 STATUS_NOT_CONNECTED = "SERVER_NOT_CONNECTED"
 STATUS_SOCKET_ERR    = "SOCKET_ERROR"
 
+HASH_SEARCH_FOUND     = 0
+HASH_SEARCH_NOT_FOUND = 1
+HASH_SEARCH_ERROR     = 2
+
+
 class AnalysisResult( object ):
 
     def __init__(self):
@@ -67,19 +72,15 @@ def extract_items( buff_response, response_item_len ):
 
         item = buff_response[i:i + response_item_len]
 
-        # HASH_SEARCH_FOUND     = 0
-        # HASH_SEARCH_NOT_FOUND = 1
-        # HASH_SEARCH_ERROR     = 2
-
-        if item[response_item_len - 1] == 0:
+        if item[response_item_len - 1] == HASH_SEARCH_FOUND:
 
             result_obj.found.add( item[:response_item_len-1].decode("utf-8") )
 
-        elif item[response_item_len-1] == 1:
+        elif item[response_item_len-1] == HASH_SEARCH_NOT_FOUND:
 
             result_obj.not_found.add( item[:response_item_len-1].decode("utf-8") )
 
-        elif item[response_item_len-1] == 2:
+        elif item[response_item_len-1] == HASH_SEARCH_ERROR:
 
             result_obj.error.add( item[:response_item_len-1].decode("utf-8") )
 
