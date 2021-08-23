@@ -136,15 +136,17 @@ static void net_read_callback( struct bufferevent *buff_ev, void *arg )
 
                 if ( bytes_read == ctx->item_size )
                 {
+                    // Make NULL terminated string (aka ASCIIZ)
                     buff_read[ ctx->item_size ] = 0 ;
 
-                    hash_search_ret ret = (*ctx->hash_search)( ctx->hash_ctx, buff_read );
-
-                    if ( ret == HASH_SEARCH_NOT_FOUND )
-                        buff_read[ ctx->item_size ] = 1;
-                    else
-                    if ( ret == HASH_SEARCH_ERROR )
-                        buff_read[ ctx->item_size ] = 2;
+                    /* ctx->hash_search() will return one of the following
+                     * values:
+                     *    HASH_SEARCH_FOUND (0)
+                     *    HASH_SEARCH_NOT_FOUND (1)
+                     *    HASH_SEARCH_ERROR (2)
+                     */
+                    buff_read[ ctx->item_size ] = (*ctx->hash_search)( ctx->hash_ctx,
+                                                                       buff_read );
 
                     bufferevent_write( buff_ev, buff_read, ctx->item_size + 1 );
                 }
