@@ -8,7 +8,7 @@
 #include <getopt.h>
 #include <regex.h>
 
-#include "md5.h"
+#include "../common/md5.h"
 #include "context.h"
 
 static struct option long_options[] =

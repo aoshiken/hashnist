@@ -13,13 +13,6 @@
 #include "../common/util.h"
 
 
-enum hash_search_ret
-{
-    HASH_SEARCH_FOUND     = 0,
-    HASH_SEARCH_NOT_FOUND = 1,
-    HASH_SEARCH_ERROR     = 2
-};
-
 typedef struct _SIGNAL_CONTEXT {
     struct event_base *server_base ; // Libevent main base
     CONTEXT *ctx ;                   // Main app context
@@ -46,18 +39,12 @@ static void sigterm_handler( int signal,
 
 static bool reload_hashes( CONTEXT *ctx )
 {
-    printf( "Reloading hashes file in memory...\n" );
+    printf( "Reloading %s hashes file in memory...\n",
+            ctx->use_md5 ? "MD5" : "SHA256");
 
-    if ( ctx->use_md5 )
-    {
-        md5_free_buffer( ctx->md5_ctx );
+    (*ctx->hash_free_buffer)( ctx->hash_ctx );
 
-        return md5_load_file( ctx->md5_ctx, ctx->hashes_file );
-    }
-
-    sha256_free_buffer( ctx->sha_ctx );
-
-    return sha256_load_file( ctx->sha_ctx, ctx->hashes_file );
+    return (*ctx->hash_load_file)( ctx->hash_ctx, ctx->hashes_file );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,50 +117,6 @@ static void net_event_callback( struct bufferevent *buff_ev,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static hash_search_ret hash_search( CONTEXT *ctx, char *buff_read )
-{
-    hash_search_ret ret = HASH_SEARCH_ERROR ;
-
-    if ( ctx->use_md5 )
-    {
-        md5_search_ret md5_ret = md5_search( ctx->md5_ctx, buff_read );
-
-        switch( md5_ret )
-        {
-            case MD5_SEARCH_FOUND:
-                ret = HASH_SEARCH_FOUND;
-                break;
-            case MD5_SEARCH_NOT_FOUND:
-                ret = HASH_SEARCH_NOT_FOUND;
-                break;
-            case MD5_SEARCH_ERROR:
-                ret = HASH_SEARCH_ERROR;
-                break;
-        }
-    }
-    else
-    {
-        sha_search_ret sha_ret = sha256_search( ctx->sha_ctx, buff_read );
-
-        switch( sha_ret )
-        {
-            case SHA_SEARCH_FOUND:
-                ret = HASH_SEARCH_FOUND;
-                break;
-            case SHA_SEARCH_NOT_FOUND:
-                ret = HASH_SEARCH_NOT_FOUND;
-                break;
-            case SHA_SEARCH_ERROR:
-                ret = HASH_SEARCH_ERROR;
-                break;
-        }
-    }
-
-    return ret;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 static void net_read_callback( struct bufferevent *buff_ev, void *arg )
 {
     CONTEXT *ctx           = (CONTEXT *)arg ;
@@ -195,11 +138,7 @@ static void net_read_callback( struct bufferevent *buff_ev, void *arg )
                 {
                     buff_read[ ctx->item_size ] = 0 ;
 
-                    hash_search_ret ret = hash_search( ctx, buff_read );
-
-                    // 0 == HASH_SEARCH_FOUND
-                    // 1 == HASH_SEARCH_NOT_FOUND
-                    // 2 == HASH_SEARCH_ERROR
+                    hash_search_ret ret = (*ctx->hash_search)( ctx->hash_ctx, buff_read );
 
                     if ( ret == HASH_SEARCH_NOT_FOUND )
                         buff_read[ ctx->item_size ] = 1;
@@ -375,17 +314,13 @@ bool server_start( CONTEXT *ctx )
     if (server_base)
     {
         if ( ctx->use_md5 )
-        {
             printf("Loading MD5 context...\n");
-            ctx->md5_ctx = md5_init_ctx( ctx->hashes_file );
-        }
         else
-        {
             printf("Loading SHA256 context...\n");
-            ctx->sha_ctx = sha256_init_ctx( ctx->hashes_file );
-        }
 
-        if ( ctx->sha_ctx || ctx->md5_ctx )
+        ctx->hash_ctx = (*ctx->hash_init_ctx)( ctx->hashes_file );
+
+        if ( ctx->hash_ctx )
         {
             ctx->modif_time = util_get_modif_time( ctx->hashes_file );
 
@@ -400,10 +335,7 @@ bool server_start( CONTEXT *ctx )
             else
                 fprintf( stderr, "evconnlistener_new_bind() failed\n");
 
-            if ( ctx->use_md5 )
-                md5_fini_ctx( ctx->md5_ctx );
-            else
-                sha256_fini_ctx( ctx->sha_ctx );
+           (*ctx->hash_fini_ctx)( ctx->hash_ctx );
         }
     }
     else

@@ -259,29 +259,34 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    if sys.argv[1] == 'md5':
+    if len( sys.argv ) == 2:
 
-        hash_list = hash_list_md5
+        if sys.argv[1] == 'md5':
 
-        print("Starting analysis with %d distinct hashes...\n" % ( len(set(hash_list))))
+            hash_list = hash_list_md5
 
-        ret_obj = analyze_md5( hash_list   = hash_list,
-                               server_name = '127.0.0.1',
-                               server_port = 25800,
-                               group_size  = 30,
-                               sock_timeout= 30 )
+            print("Starting analysis with %d distinct hashes...\n" % ( len(set(hash_list))))
 
-    elif  sys.argv[1] == 'sha256':
+            ret_obj = analyze_md5( hash_list   = hash_list,
+                                   server_name = '127.0.0.1',
+                                   server_port = 25800,
+                                   group_size  = 30,
+                                   sock_timeout= 30 )
 
-        hash_list = hash_list_sha
+        elif  sys.argv[1] == 'sha256':
 
-        print("Starting analysis with %d distinct hashes...\n" % ( len(set(hash_list))))
+            hash_list = hash_list_sha
 
-        ret_obj = analyze_sha256( hash_list   = hash_list,
-                                  server_name = '127.0.0.1',
-                                  server_port = 25800,
-                                  group_size  = 30,
-                                  sock_timeout= 30 )
+            print("Starting analysis with %d distinct hashes...\n" % ( len(set(hash_list))))
+
+            ret_obj = analyze_sha256( hash_list   = hash_list,
+                                      server_name = '127.0.0.1',
+                                      server_port = 25800,
+                                      group_size  = 30,
+                                      sock_timeout= 30 )
+        else:
+            print("Invalid argument!!")
+            sys.exit()
     else:
         print("Invalid argument!!")
         sys.exit()
