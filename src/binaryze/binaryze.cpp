@@ -7,8 +7,8 @@
 #include <regex.h>
 #include <fcntl.h>
 
-#include "util.h"
-#include "sha256.h"
+#include "../common/util.h"
+#include "../common/sha256.h"
 #include "context.h"
 #include "parser.h"
 

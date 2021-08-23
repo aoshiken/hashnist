@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <getopt.h>
 
+#include "../common/md5.h"
 #include "context.h"
 
 
@@ -31,35 +32,30 @@ static struct option long_options[] =
 
 ///////////////////////////////////////////////////////////////////////////////
 
-char *check_hashes_file( char *file_path )
+bool check_hashes_file( CONTEXT *ctx, const char *file_path )
 {
-    char *real_file_path = realpath( file_path, NULL );
-
-    if ( real_file_path )
+    if ( file_path )
     {
         struct stat64 statbuf ;
 
-        if ( ! stat64( real_file_path, &statbuf) )
+        if ( ! stat64( file_path, &statbuf) )
         {
-            if ( statbuf.st_size && ( ! ( statbuf.st_size % sizeof( SHA_256 ) ) ) )
+            if ( ( statbuf.st_size >= (long)( ctx->item_size / 2 ) &&
+                 ( ! ( statbuf.st_size % ( ctx->item_size / 2 ) ) ) ) )
 
-                return real_file_path ;
+                return true ;
 
-            else
-                fprintf( stderr, "\nERROR!! Invalid file size %ld for hashes file %s!!\n\n", statbuf.st_size,
-                          real_file_path );
+            fprintf( stderr, "\nERROR!! Invalid file size %ld for hashes file %s!!\n\n",
+                     statbuf.st_size, file_path );
         }
         else
-            fprintf(stderr, "\nERROR!! Invalid or nonexistant hashes file %s!!\n\n", real_file_path );
+            fprintf(stderr, "\nERROR!! Invalid or nonexistant hashes file %s!!\n\n", file_path );
 
-        free( real_file_path );
-
-        real_file_path = NULL ;
     }
     else
         fprintf(stderr, "\nERROR!! Invalid path %s!!\n\n", file_path );
 
-    return real_file_path ;
+    return false ;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -70,7 +66,7 @@ int get_ip4_address( char *ip_str )
 
     if ( ! inet_pton( AF_INET, ip_str, &ip4) )
         ip4 = -1;
-    printf("IP ES 0x%X\n", ip4);
+
     return ip4;
 }
 
@@ -120,8 +116,13 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
         switch( ch )
         {
             case '5':
-                ctx->use_md5   = true ;
-                ctx->item_size = 32;
+                ctx->use_md5          = true ;
+                ctx->item_size        = 32;
+                ctx->hash_load_file   = md5_load_file;
+                ctx->hash_free_buffer = md5_free_buffer;
+                ctx->hash_search      = md5_search;
+                ctx->hash_init_ctx    = md5_init_ctx ;
+                ctx->hash_fini_ctx    = md5_fini_ctx ;
                 break;
             case 'D':
                 ctx->daemonize = true ;
@@ -142,7 +143,7 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
                 ctx->port = atoi( optarg );
                 break;
             case 'i':
-                ctx->hashes_file = check_hashes_file( optarg );
+                ctx->hashes_file = realpath( optarg, NULL );
                 if ( ! ctx->hashes_file )
                     exit( EXIT_FAILURE );
                 break;
@@ -162,8 +163,15 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
 
     if ( ! ctx->hashes_file )
     {
-        fprintf( stderr, "\nERROR!! I need the path of the hashes file (option -r)!\n\n");
+        fprintf( stderr, "\nERROR!! I need the path of the hashes file (option -i)!\n\n");
         return false ;
+    }
+
+    if ( ! check_hashes_file( ctx, ctx->hashes_file ) )
+    {
+        free( (void *)ctx->hashes_file );
+        ctx->hashes_file = NULL ;
+        return false;
     }
 
     if ( ctx->ip == 0xffffffff )

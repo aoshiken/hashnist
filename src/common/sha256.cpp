@@ -141,9 +141,10 @@ char *sha256_to_hex( SHA_256 *sha )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-sha_search_ret sha256_search( SHA_CONTEXT *sha_ctx, char *hex_str )
+hash_search_ret sha256_search( void *ctx_arg, char *hex_str )
 {
-    sha_search_ret ret = SHA_SEARCH_ERROR ;
+    SHA_CONTEXT *sha_ctx = (SHA_CONTEXT *)ctx_arg ;
+    hash_search_ret ret  = HASH_SEARCH_ERROR ;
 
     if ( ! regexec( &sha_ctx->preg, (const char *)hex_str, 0, NULL, 0 ) )
     {
@@ -155,7 +156,7 @@ sha_search_ret sha256_search( SHA_CONTEXT *sha_ctx, char *hex_str )
             SHA_256 *sha_last  = sha_ctx->sha_last ;
             SHA_256 *sha_mid ;
 
-            ret = SHA_SEARCH_NOT_FOUND;
+            ret = HASH_SEARCH_NOT_FOUND;
 
             while( sha_first <= sha_last )
             {
@@ -163,7 +164,7 @@ sha_search_ret sha256_search( SHA_CONTEXT *sha_ctx, char *hex_str )
 
                 if ( sha256_is_equal( sha_arg, sha_mid ) )
                 {
-                    ret = SHA_SEARCH_FOUND ;
+                    ret = HASH_SEARCH_FOUND ;
                     break;
                 }
 
@@ -218,7 +219,7 @@ bool sha256_load_buffer( SHA_CONTEXT *sha_ctx, int file_hnd, off64_t *buff_size)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool sha256_load_file( SHA_CONTEXT *sha_ctx, const char *file_path_src )
+bool sha256_load_file( void *ctx_arg, const char *file_path_src )
 {
     bool ret = false ;
     int file_hnd = open( file_path_src, O_RDONLY );
@@ -233,6 +234,8 @@ bool sha256_load_file( SHA_CONTEXT *sha_ctx, const char *file_path_src )
 
         if ( ! fstat64( file_hnd, &statbuf) )
         {
+            SHA_CONTEXT *sha_ctx = (SHA_CONTEXT *)ctx_arg ;
+
             ret = sha256_load_buffer( sha_ctx, file_hnd, &statbuf.st_size );
 
             if ( ret )
@@ -250,7 +253,7 @@ bool sha256_load_file( SHA_CONTEXT *sha_ctx, const char *file_path_src )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-SHA_CONTEXT *sha256_init_ctx( const char *file_path_src )
+void *sha256_init_ctx( const char *file_path_src )
 {
     SHA_CONTEXT *ret_ctx = (SHA_CONTEXT *)calloc( 1, sizeof( SHA_CONTEXT ) );
 
@@ -258,9 +261,9 @@ SHA_CONTEXT *sha256_init_ctx( const char *file_path_src )
     {
         if ( ! regcomp( &ret_ctx->preg, "^[0-9A-Fa-f]\\{64\\}$", 0 ) )
         {
-            if ( sha256_load_file( ret_ctx, file_path_src ) )
+            if ( sha256_load_file( (void *)ret_ctx, file_path_src ) )
             {
-                return ret_ctx;
+                return (void *)ret_ctx;
             }
 
             regfree( &ret_ctx->preg );
@@ -276,10 +279,12 @@ SHA_CONTEXT *sha256_init_ctx( const char *file_path_src )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void sha256_free_buffer( SHA_CONTEXT *ctx )
+void sha256_free_buffer( void *ctx_arg )
 {
-    if ( ctx )
+    if ( ctx_arg )
     {
+        SHA_CONTEXT *ctx = (SHA_CONTEXT *)ctx_arg ;
+
         if ( ctx->buffer )
         {
             free( ctx->buffer );
@@ -290,11 +295,12 @@ void sha256_free_buffer( SHA_CONTEXT *ctx )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void sha256_fini_ctx( SHA_CONTEXT *ctx )
+void sha256_fini_ctx( void *ctx_arg )
 {
-    if ( ctx )
+    if ( ctx_arg )
     {
-        sha256_free_buffer( ctx );
+        SHA_CONTEXT *ctx = (SHA_CONTEXT *)ctx_arg;
+        sha256_free_buffer( (void *)ctx );
 
         if ( ctx->preg.allocated )
             regfree( &ctx->preg );

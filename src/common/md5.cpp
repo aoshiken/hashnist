@@ -118,9 +118,10 @@ char *md5_to_hex( MD5 *md5 )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-md5_search_ret md5_search( MD5_CONTEXT *md5_ctx, char *hex_str )
+hash_search_ret md5_search( void *ctx_arg, char *hex_str )
 {
-    md5_search_ret ret = MD5_SEARCH_ERROR ;
+    MD5_CONTEXT *md5_ctx =(MD5_CONTEXT *)ctx_arg ;
+    hash_search_ret ret  = HASH_SEARCH_ERROR ;
 
     if ( ! regexec( &md5_ctx->preg, (const char *)hex_str, 0, NULL, 0 ) )
     {
@@ -132,7 +133,7 @@ md5_search_ret md5_search( MD5_CONTEXT *md5_ctx, char *hex_str )
             MD5 *md5_last  = md5_ctx->md5_last ;
             MD5 *md5_mid ;
 
-            ret = MD5_SEARCH_NOT_FOUND;
+            ret = HASH_SEARCH_NOT_FOUND;
 
             while( md5_first <= md5_last )
             {
@@ -140,7 +141,7 @@ md5_search_ret md5_search( MD5_CONTEXT *md5_ctx, char *hex_str )
 
                 if ( md5_is_equal( md5_arg, md5_mid ) )
                 {
-                    ret = MD5_SEARCH_FOUND ;
+                    ret = HASH_SEARCH_FOUND ;
                     break;
                 }
 
@@ -195,7 +196,7 @@ bool md5_load_buffer( MD5_CONTEXT *md5_ctx, int file_hnd, off64_t *buff_size)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool md5_load_file( MD5_CONTEXT *md5_ctx, const char *file_path_src )
+bool md5_load_file( void *ctx_arg, const char *file_path_src )
 {
     bool ret = false ;
     int file_hnd = open( file_path_src, O_RDONLY );
@@ -210,6 +211,8 @@ bool md5_load_file( MD5_CONTEXT *md5_ctx, const char *file_path_src )
 
         if ( ! fstat64( file_hnd, &statbuf) )
         {
+            MD5_CONTEXT *md5_ctx = (MD5_CONTEXT *)ctx_arg ;
+
             ret = md5_load_buffer( md5_ctx, file_hnd, &statbuf.st_size );
 
             if ( ret )
@@ -227,7 +230,7 @@ bool md5_load_file( MD5_CONTEXT *md5_ctx, const char *file_path_src )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-MD5_CONTEXT *md5_init_ctx( const char *file_path_src )
+void *md5_init_ctx( const char *file_path_src )
 {
     MD5_CONTEXT *ret_ctx = (MD5_CONTEXT *)calloc( 1, sizeof( MD5_CONTEXT ) );
 
@@ -237,7 +240,7 @@ MD5_CONTEXT *md5_init_ctx( const char *file_path_src )
         {
             if ( md5_load_file( ret_ctx, file_path_src ) )
             {
-                return ret_ctx;
+                return (void *)ret_ctx;
             }
 
             regfree( &ret_ctx->preg );
@@ -253,10 +256,12 @@ MD5_CONTEXT *md5_init_ctx( const char *file_path_src )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void md5_free_buffer( MD5_CONTEXT *ctx )
+void md5_free_buffer( void *ctx_arg )
 {
-    if ( ctx )
+    if ( ctx_arg )
     {
+        MD5_CONTEXT *ctx = (MD5_CONTEXT *)ctx_arg ;
+
         if ( ctx->buffer )
         {
             free( ctx->buffer );
@@ -267,11 +272,13 @@ void md5_free_buffer( MD5_CONTEXT *ctx )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void md5_fini_ctx( MD5_CONTEXT *ctx )
+void md5_fini_ctx( void *ctx_arg )
 {
-    if ( ctx )
+    if ( ctx_arg )
     {
-        md5_free_buffer( ctx );
+        MD5_CONTEXT *ctx = (MD5_CONTEXT *)ctx_arg;
+
+        md5_free_buffer( (void *)ctx );
 
         if ( ctx->preg.allocated )
             regfree( &ctx->preg );
