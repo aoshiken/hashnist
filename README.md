@@ -87,6 +87,10 @@ MD5 hashes loaded in memory: 35854732
 Server started at port 25800...
 ```
 
+## Extras
+
+If you want to add MD5/SHA256 hashes from your Windows computer that aren't available in the NSRL dataset use the `hash.cmd` Windows script. See the `README.md` file in the `extras` folder for instructions
+
 ## REFERENCES
 
 [National Software Reference Library](https://www.nist.gov/itl/ssd/software-quality-group/national-software-reference-library-nsrl)
