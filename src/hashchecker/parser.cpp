@@ -83,21 +83,21 @@ void show_help( char *progname )
 
     fprintf(stderr,"\nRead an input file that contains SHA256 or MD5 hashes in binary format and start a TCP\n");
     fprintf(stderr,"server ready for searching hashes with reasonable speed.\n");
-    fprintf(stderr,"The source file must be created by the 'binaryze' utility (SHA256 hashes) or the 'binaryzemd5' utility (MD5 hashes), the hashes\n");
+    fprintf(stderr,"The input file must be created by the 'binaryze' utility, the hashes in text format\n");
     fprintf(stderr,"comes from the NIST National Software Reference Library catalog.\n\n");
     fprintf(stderr,"Usage:\n");
     fprintf(stderr,"    %s [-d] [-D] [-M num] [-p port] [-H ip4_addr] {-i file_path} [-t secs] [-V] [-5]\n\n", cur );
     fprintf(stderr,"Options:\n");
     fprintf(stderr,"    -5, --use-md5               Enable MD5 hashes (default is disabled, using SHA256 hashes)\n");
-    fprintf(stderr,"    -d, --debug                  Enable debug logs\n");
-    fprintf(stderr,"    -D, --daemonize              Daemonize server\n");
-    fprintf(stderr,"    -h, --help                   Show this help screen\n"); 
-    fprintf(stderr,"    -H, --hostname=ip4_addr      Bind server to this IPv4 address (default: 127.0.0.1)\n");
-    fprintf(stderr,"    -M, --max-clients=num        Max clients supported by the server (default: %d)\n", CTX_DFL_CLIENTS);
-    fprintf(stderr,"    -p, --port=port              Bind server to this TCP port (default: %d)\n", CTX_DFL_TCP_PORT);
-    fprintf(stderr,"    -i, --input-file=file_path   Input file with hashes in binary format\n");
-    fprintf(stderr,"    -t, --socket-timeout=secs    Socket timeout in seconds (default: %d)\n", CTX_DFL_TIMEOUT);
-    fprintf(stderr,"    -V, --version                Show program version\n\n" );
+    fprintf(stderr,"    -d, --debug                 Enable debug logs\n");
+    fprintf(stderr,"    -D, --daemonize             Daemonize server\n");
+    fprintf(stderr,"    -h, --help                  Show this help screen\n");
+    fprintf(stderr,"    -H, --hostname=ip4_addr     Bind server to this IPv4 address (default: 127.0.0.1)\n");
+    fprintf(stderr,"    -M, --max-clients=num       Max clients supported by the server (default: %d)\n", CTX_DFL_CLIENTS);
+    fprintf(stderr,"    -p, --port=port             Bind server to this TCP port (default: %d)\n", CTX_DFL_TCP_PORT);
+    fprintf(stderr,"    -i, --input-file=file_path  Input file with hashes in binary format\n");
+    fprintf(stderr,"    -t, --socket-timeout=secs   Socket timeout in seconds (default: %d)\n", CTX_DFL_TIMEOUT);
+    fprintf(stderr,"    -V, --version               Show program version\n\n" );
 
     exit( EXIT_FAILURE );
 }

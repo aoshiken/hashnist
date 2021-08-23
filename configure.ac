@@ -1,4 +1,4 @@
-AC_INIT([shanist], [0.1.0], [aandreswork@hotmail.com])
+AC_INIT([hashnist], [0.1.1], [aandreswork@hotmail.com])
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 

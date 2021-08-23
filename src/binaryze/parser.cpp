@@ -23,21 +23,23 @@ static struct option long_options[] =
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool check_hashes_file( char *file_path )
+bool check_hashes_file( CONTEXT *ctx, const char *file_path )
 {
     struct stat64 statbuf ;
 
     if ( ! stat64( file_path, &statbuf) )
     {
-        if ( statbuf.st_size && ( ! ( statbuf.st_size % 64 ) ) )
+        if ( ( statbuf.st_size >= ctx->hash_str_size ) &&
+             ( ! ( statbuf.st_size % ctx->hash_str_size ) ) )
 
             return true ;
 
-        fprintf( stderr, "\nERROR!! Invalid file size %ld for hashes file %s!!\n\n", statbuf.st_size,
-                      file_path );
+        fprintf( stderr, "\nERROR!! Invalid file size %ld for hashes file %s!!\n\n",
+                 statbuf.st_size, file_path );
     }
     else
-        fprintf(stderr, "\nERROR!! Invalid or nonexistant hashes file %s!!\n\n", file_path );
+        fprintf(stderr, "\nERROR!! Invalid or nonexistant hashes file %s!!\n\n",
+                file_path );
 
     return false ;
 }
@@ -65,7 +67,7 @@ void show_help( char *progname )
     fprintf(stderr, "    -i --input-file  file_path  Input file with ordered hashes in text format\n");
     fprintf(stderr, "    -o --output-file file_path  Output file with hashes in binary format\n");
     fprintf(stderr, "    -V, --version               Show file version\n\n");
-  
+
     exit( EXIT_FAILURE );
 }
 
@@ -98,13 +100,14 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
                 show_help( argv[0] );
                 break;
             case 'i':
-                if ( check_hashes_file( optarg ) )
-                    ctx->hash_txt_path = optarg ;
-                else
+                ctx->hash_txt_path = realpath( optarg, NULL ) ;
+                if ( ! ctx->hash_txt_path )
                     exit( EXIT_FAILURE );
                 break;
             case 'o':
-                ctx->hash_bin_path = optarg ;
+                ctx->hash_bin_path = realpath( optarg, NULL ) ;
+                if ( ! ctx->hash_bin_path )
+                    exit( EXIT_FAILURE );
                 break;
             case 'V':
                 printf("Version " PACKAGE_VERSION "\n");
@@ -121,6 +124,13 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
     {
         fprintf( stderr, "\nERROR!! I need the path of the input file (option -i)!\n\n");
         exit( EXIT_FAILURE );
+    }
+
+    if ( ! check_hashes_file( ctx, ctx->hash_txt_path ) )
+    {
+        free( (void *)ctx->hash_txt_path );
+        ctx->hash_txt_path = NULL ;
+        return false;
     }
 
     if ( ! ctx->hash_bin_path )

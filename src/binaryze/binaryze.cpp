@@ -115,7 +115,6 @@ CONTEXT *context_init( void )
         ret_ctx->hash_size     = 32 ;
         ret_ctx->hash_str_size = 64 ;
         ret_ctx->hash_from_hex = sha256_from_hex_allocated ;
-
         if ( ! regcomp( &ret_ctx->preg, "^[0-9A-Fa-f]\\{64\\}$", 0 ) )
 
             return ret_ctx;
@@ -143,6 +142,12 @@ void context_fini( CONTEXT *ctx )
 {
     if ( ctx )
     {
+        if ( ctx->hash_txt_path )
+            free( (void *)ctx->hash_txt_path );
+
+        if ( ctx->hash_bin_path )
+            free( (void *)ctx->hash_bin_path );
+
         regfree( &ctx->preg );
 
         free( ctx );
