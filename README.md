@@ -18,6 +18,7 @@ To build the `hashchecker` server and the companion tools we use the Autotools b
 $ ./autogen.sh
 $ ./configure
 $ make
+$ make install
 ```
 
 ## Python bindings
@@ -37,19 +38,26 @@ Get the SHA1-to-SHA256 file from NIST:
 $ curl https://s3.amazonaws.com/docs.nsrl.nist.gov/morealgs/blockhash/rds241-sha256.zip -o rds241-sha256.zip
 ```
 
-Convert the NIST SHA256 data to a file with all of the SHA256 hashes ordered in
-just one line with no blanks in between:
+Decompress the file and use the file `rds241-sha256.txt` as a parameter for the bash script `norm-sha256.sh` located in the `extras` folder:
 ```
-$ cut -f 2 rds241-sha256.txt | LC_ALL=C sort -u | tr --delete '\n' > sha256-ordered.txt
+$ ./norm-sha256.sh rds241-sha256.txt sha256-ordered.bin
+
+** Checking output file... OK
+
+** Checking input files... OK
+
+** Creating ordered text file. Process could last several minutes... OK
+
+** Converting ordered text file to binary format... OK
+
+** Script finished OK. Binary file successfully created on /home/aandres/github/hashnist/extras/sha256-ordered.bin
+
+** You can use this file as the input parameter for the hashchecker server this way:
+
+    $ hashchecker -p 25900 -i /home/aandres/github/hashnist/extras/sha256-ordered.bin
 ```
 
-Now you can convert the file from the previous step into a binary file using
- the `binaryze` utility:
-```
-$ binaryze -i sha256-ordered.txt -o sha256-ordered.bin
-```
-
-...and now you can start the `hashchecker` server with the file generated:
+...and now you can start the `hashchecker` server with the binary file generated:
 ```
 $ hashchecker -p 25900 -i sha256-ordered.bin
 Loading SHA256 context...
@@ -64,21 +72,29 @@ Get the latest Modern RDS (minimal) file from NIST:
 ```
 $ curl https://s3.amazonaws.com/rds.nsrl.nist.gov/RDS/current/rds_modernm.zip -o rds_modernm.zip
 ```
-Decompress the compressed file and remove the first line of the `NSRLFile.txt` file.
 
-Convert the NIST MD5 data to a file with all of the MD5 hashes ordered in
-just one line with no blanks in between:
+Decompress the downloaded file and remove the first line of the `NSRLFile.txt` file.
+
+Use the file `NSRLFile.txt` as a parameter for the bash script `norm-md5.sh` located in the `extras` folder:
 ```
-$ cut -f 4 -d '"' NSRLFile.txt | LC_ALL=C sort -u | tr --delete '\n' > md5-ordered.txt
+$ ./norm-md5.sh NSRLFile.txt md5-ordered.bin
+
+** Checking output file... OK
+
+** Checking input files... OK
+
+** Creating ordered text file. Process could last several minutes... OK
+
+** Converting ordered text file to binary format... OK
+
+** Script finished OK. Binary file successfully created on /home/aandres/github/hashnist/extras/md5-ordered.bin
+
+** You can use this file as the input parameter for the hashchecker server this way:
+
+    $ hashchecker --use-md5 -i /home/aandres/github/hashnist/extras/md5-ordered.bin
 ```
 
-Now you can convert the file from the previous step into a binary file using
- the `binaryze` utility:
-```
-$ binaryze --use-md5 -i md5-ordered.txt -o md5-ordered.bin
-```
-
-...and now you can start the `hashchecker` server with the file generated:
+...and now you can start the `hashchecker` server with the binary file generated in the previous step:
 ```
 $ hashchecker --use-md5 -i md5-ordered.bin
 Loading MD5 context...
@@ -89,7 +105,11 @@ Server started at port 25800...
 
 ## Extras
 
-If you want to add MD5/SHA256 hashes from your Windows computer that aren't available in the NSRL dataset use the `hash.cmd` Windows script. See the `README.md` file in the `extras` folder for instructions
+The `extras` folder contains a few scripts for helping generating the binary files needed for the server.
+
+If you want to add MD5/SHA256 hashes from your Windows computer that aren't available in the NSRL dataset use the `hash.cmd` Windows script.
+
+See the `README.md` file in the `extras` folder for instructions
 
 ## REFERENCES
 
