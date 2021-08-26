@@ -145,9 +145,6 @@ void context_fini( CONTEXT *ctx )
         if ( ctx->hash_txt_path )
             free( (void *)ctx->hash_txt_path );
 
-        if ( ctx->hash_bin_path )
-            free( (void *)ctx->hash_bin_path );
-
         regfree( &ctx->preg );
 
         free( ctx );

@@ -145,7 +145,10 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
             case 'i':
                 ctx->hashes_file = realpath( optarg, NULL );
                 if ( ! ctx->hashes_file )
+                {
+                    fprintf(stderr, "\nERROR!! Invalid input file '%s'!\n\n",optarg);
                     exit( EXIT_FAILURE );
+                }
                 break;
             case 't':
                 ctx->socket_timeout = atoi( optarg );

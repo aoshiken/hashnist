@@ -88,7 +88,7 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
                 regfree( &ctx->preg );
                 if ( regcomp( &ctx->preg, "^[0-9A-Fa-f]\\{32\\}$", 0 ) )
                 {
-                    fprintf(stderr,"Uanble to compile regex!!\n");
+                    fprintf(stderr,"Unable to compile regex!!\n");
                     exit( EXIT_FAILURE );
                 }
                 ctx->use_md5       = true;
@@ -105,9 +105,7 @@ bool parse_options( int argc, char **argv, CONTEXT *ctx )
                     exit( EXIT_FAILURE );
                 break;
             case 'o':
-                ctx->hash_bin_path = realpath( optarg, NULL ) ;
-                if ( ! ctx->hash_bin_path )
-                    exit( EXIT_FAILURE );
+                ctx->hash_bin_path = optarg ;
                 break;
             case 'V':
                 printf("Version " PACKAGE_VERSION "\n");
