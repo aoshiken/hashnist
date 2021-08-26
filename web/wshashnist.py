@@ -54,11 +54,11 @@ def get_hash_list():
 
 ################################################################################
 
-def execute_sync( hash_list ):
+def execute_sync( hash_list, use_md5=True ):
 
     try:
 
-        ret_dict = tasks.analyze( hash_list )
+        ret_dict = tasks.analyze( hash_list, use_md5=use_md5 )
 
     except:
 
@@ -70,10 +70,10 @@ def execute_sync( hash_list ):
 
 ################################################################################
 
-def execute_async( hash_list ):
+def execute_async( hash_list, use_md5=True ):
 
     job = task_queue.enqueue( tasks.analyze,
-                              args        = ( hash_list, ),
+                              args        = ( hash_list, use_md5 ),
                               result_ttl  = settings.RQ_RESULT_TTL,
                               failure_ttl = settings.RQ_FAILURE_TTL )
 
@@ -81,20 +81,33 @@ def execute_async( hash_list ):
 
 ################################################################################
 
-@app.route('/analyze', methods=['POST'])
-def analyze():
+def analyze( use_md5=True ):
 
     hash_list = get_hash_list()
 
     if len( hash_list ) >= settings.MINIMAL_ASYNC_ITEMS:
 
-        ret_dict = execute_async( hash_list )
+        ret_dict = execute_async( hash_list, use_md5=use_md5 )
 
     else:
 
-        ret_dict = execute_sync( hash_list )
+        ret_dict = execute_sync( hash_list, use_md5=use_md5 )
 
     return flask.jsonify( ret_dict )
+
+################################################################################
+
+@app.route('/analyzemd5', methods=['POST'])
+def analyzemd5():
+
+    return analyze( use_md5=True)
+
+################################################################################
+
+@app.route('/analyzesha', methods=['POST'])
+def analyzesha():
+
+    return analyze( use_md5=False )
 
 ################################################################################
 

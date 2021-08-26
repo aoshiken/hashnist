@@ -1,8 +1,18 @@
-HOSTNAME       = 'localhost'
-PORT           = 25800
-GROUP_SIZE     = 1000
-SOCKET_TIMEOUT = 40
-SERVER_USE_MD5 = True
+# Settings for MD5 hashchecker server:
+MD5_HOSTNAME       = 'localhost'
+MD5_PORT           = 25800
+MD5_GROUP_SIZE     = 1000
+MD5_SOCKET_TIMEOUT = 40
+
+# Settings for SHA256 hashchecker server:
+SHA256_HOSTNAME       = 'localhost'
+SHA256_PORT           = 25900
+SHA256_GROUP_SIZE     = 1000
+SHA256_SOCKET_TIMEOUT = 40
+
+###############################################################################
+
+# Generic settings
 
 MINIMAL_ASYNC_ITEMS = 5000
 

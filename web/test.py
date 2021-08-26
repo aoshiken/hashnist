@@ -1,5 +1,7 @@
 import sys
 import requests
+import json
+import time
 
 sha256_list = [ '00000A1ED7F56E4DFA4582BFB55739113A135BC4F6EB2DA750654B6FA66B3CBA',
                 'FFFFFF60E2F34314B6FD7DD7E827BC2D854BF364C5815C46E5E9A0A3B6661303',
@@ -31,19 +33,63 @@ md5_list = [ '0000015367EEDD3FAF7EE378DD1992CC',
              'FFFFFFBAC715AFD1EC723F4A982CE620'
             ]
 
-if sys.argv[1] == 'md5':
+###############################################################################
 
-    r = requests.post('http://localhost/hashnist/analyze', json={ "hashes": md5_list })
-    print( r.json())
+def print_async_results( analysis_id ):
 
-elif sys.argv[1] == 'sha256':
+    done      = False
+    json_dict = {}
 
-    r = requests.post('http://localhost/hashnist/analyze', json={ "hashes": sha256_list })
-    print( r.json())
+    while not done:
+
+        print("Pending analysis. Waiting 1 second before retrying...\n" )
+
+        time.sleep( 1 )
+
+        async_req = requests.get( 'http://localhost/hashnist/results/%s' % analysis_id )
+
+        json_dict = async_req.json()
+
+        if json_dict.get('status') != 'PENDING':
+
+            done = True
+
+    print( json.dumps( json_dict, indent=3,separators=(", ", " = ") ) )
+
+###############################################################################
+
+def print_results( req_obj ):
+
+    json_dict = req_obj.json()
+
+    if json_dict.get('status') == 'PENDING':
+
+        print_async_results( json_dict.get('analysis_id') )
+
+    else:
+
+        print( json.dumps( json_dict, indent=3,separators=(", ", " = ") ) )
+
+###############################################################################
+
+if len( sys.argv) == 2 :
+
+    if sys.argv[1] in [ 'md5', 'sha256' ]:
+
+        if sys.argv[1] == 'md5':
+            url       = 'http://localhost/hashnist/analyzemd5'
+            hash_list = md5_list
+        else:
+            url       = 'http://localhost/hashnist/analyzesha'
+            hash_list = sha256_list
+
+        #r = requests.post('http://localhost:5000/analyze', json={ "hashes": lista })
+        req_obj = requests.post( url, json={ "hashes": hash_list })
+
+        print_results( req_obj )
+
+    else:
+        print("Invalid argument!!")
 
 else:
     print("Invalid argument!!")
-
-#r = requests.post('http://localhost:5000/analyze', json={ "hashes": lista })
-
-

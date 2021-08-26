@@ -40,7 +40,7 @@ The folders structure should looks like this:
     └── wshashnist.py
 ```
 
-Change the file `settings.py` to suit your needs, set the variable `SERVER_USE_MD5`to `False` if you wan to use the server with SHA256 hashes.
+Change the file `settings.py` to suit your needs.
 
 Enable and update the Python virtual environment:
 ```
@@ -77,14 +77,14 @@ $ sudo service apache2 restart
 
 Open a terminal and start the hashchecker server for SHA256 hashes...
 ```
-$ hashchecker -i sha256-ordered.bin
+$ hashchecker -p 25900 -i sha256-ordered.bin
 Loading SHA256 context...
 Loading binary hashes from file sha256-ordered.bin...
 SHA256 hashes loaded in memory: 16801737
-Server started at port 25800...
+Server started at port 25900...
 ```
 
-...or start the hashchecker server this way for MD5 hashes...
+Open another terminal and start the hashchecker server for MD5 hashes...
 ```
 $ hashchecker --use-md5 -i md5-ordered.bin
 Loading MD5 context...
@@ -93,7 +93,7 @@ MD5 hashes loaded in memory: 35854732
 Server started at port 25800...
 ```
 
-Open another terminal, activate the virtual environment and start an RQ worker:
+Open a 3rd terminal, activate the virtual environment and start an RQ worker:
 ```
 $ cd /var/www/hashnist
 $ source venv/bin/activate
@@ -104,7 +104,7 @@ $ source venv/bin/activate
 07:16:20 Cleaning registries for queue: hashtasks
 ```
 
-Open a 3rd terminal and test the server if configured for SHA256 hashes...
+Open a 4th terminal and test the server configured for SHA256 hashes...
 ```
 $ cd /var/www/hashnist
 $ source venv/bin/activate
@@ -122,10 +122,8 @@ $ source venv/bin/activate
 }
 ```
 
- ...or this way if configured for MD5 hashes...
+...and after test the server configured for MD5 hashes...
 ```
-$ cd /var/www/hashnist
-$ source venv/bin/activate
 (venv) $ python test.py md5
 {
     'results': {'error': ['8DC95C39D41DG8A3929345A47FD6DE21'],

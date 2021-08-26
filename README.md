@@ -51,11 +51,11 @@ $ binaryze -i sha256-ordered.txt -o sha256-ordered.bin
 
 ...and now you can start the `hashchecker` server with the file generated:
 ```
-$ hashchecker -i sha256-ordered.bin
+$ hashchecker -p 25900 -i sha256-ordered.bin
 Loading SHA256 context...
 Loading binary hashes from file /home/aandres/github/hashnist/data/sha256/sha256-ordered.bin...
 SHA256 hashes loaded in memory: 16801737
-Server started at port 25800...
+Server started at port 25900...
 ```
 
 ## Installation for MD5 hashes
