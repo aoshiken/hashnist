@@ -53,7 +53,7 @@ bool check_hashes_file( CONTEXT *ctx, const char *file_path )
 
     }
     else
-        fprintf(stderr, "\nERROR!! Invalid path %s!!\n\n", file_path );
+        fprintf(stderr, "\nERROR!! check_hashes_file: Invalid path provided!!\n\n" );
 
     return false ;
 }
