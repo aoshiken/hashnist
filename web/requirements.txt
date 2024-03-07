@@ -1,3 +1,4 @@
-Flask==1.1.2
-redis==3.5.3
-rq==1.6.1
+Flask==3.0.2
+redis==5.0.2
+rq==1.16.0
+requests==2.31.0
